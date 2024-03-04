@@ -1,75 +1,43 @@
-import xml.etree.ElementTree as ET
+import os
+def generar_diagrama_pisos(pisos):
+    if len(pisos) == 0:
+        print('No hay pisos para mostrar.')
+        return
+
+    for i, piso in enumerate(pisos, start=1):
+        print(f'Piso {i}:')
+        print('Nombre:', piso['nombre'])
+        print('Filas:', piso['filas'])
+        print('Columnas:', piso['columnas'])
+        print('Patrón:', piso['patron'])
+        print()
+
+        # Crear archivo DOT
+        dot_filename = f'piso_{i}.dot'
+        with open(dot_filename, 'w') as dot_file:
+            dot_file.write('digraph G {\n')
+            dot_file.write('node [shape=plaintext];\n')
+            dot_file.write('edge [style=invis];\n')
+            dot_file.write(f'label="{piso["nombre"]} - PATRON = {piso["patron"]}"\n')
+            dot_file.write('piso [\n')
+            dot_file.write('label=<<TABLE border="1" cellspacing="0" cellpadding="10">\n')
+
+            for _ in range(piso['filas']):
+                dot_file.write('<tr>')
+                for _ in range(piso['columnas']):
+                    if piso['patron'] == 'B':
+                        dot_file.write('<td bgcolor="black"></td>')
+                    elif piso['patron'] == 'N':
+                        dot_file.write('<td bgcolor="white"></td>')
+                dot_file.write('</tr>\n')
+
+            dot_file.write('</TABLE>>\n')
+            dot_file.write('shape=none\n];\n')
+            dot_file.write('}\n')
+
+        # Generar PDF
+        pdf_filename = f'piso_{i}.pdf'
+        system(f'dot -Tpdf {dot_filename} -o {pdf_filename}')
+        startfile(pdf_filename)
 
 
-class Piso:
-    def __init__(self, nombre, r, c, f, s):
-        self.nombre = nombre
-        self.r = r 
-        self.c = c
-        self.f = f
-        self.s = s
-        self.patrones = {}
-    
-    def agregar_patron(self, codigo, patron):
-        self.patrones[codigo] = patron
-        
-    def cambiar_patron(self, codigo_origen, codigo_destino):
-        patron_origen = self.patrones[codigo_origen]
-        patron_destino = self.patrones[codigo_destino]
-        
-        costo_minimo, instrucciones = calcular_cambio_minimo(patron_origen, patron_destino, self.f, self.s)
-        
-        print(f"Costo mínimo para cambiar de {codigo_origen} a {codigo_destino}: {costo_minimo}")
-        
-        print("Instrucciones:")
-        for instr in instrucciones:
-            print(instr)
-            
-        generar_grafica(patron_destino, self.r, self.c, codigo_destino)
-        
-def calcular_cambio_minimo(patron_origen, patron_destino, f, s):
-    # Aquí se implementa la lógica para calcular el costo mínimo 
-    # y generar las instrucciones
-    
-    instrucciones = []
-    costo = 0
-    
-    return costo, instrucciones
-    
-def generar_grafica(patron, r, c, codigo):
-    graph = Digraph(codigo)
-    
-    # Aquí se genera el gráfico con Graphviz
-    
-    print(graph.source)
-    
-def main():
-    arbol = ET.parse('pisos.xml')
-    raiz = arbol.getroot()
-
-    pisos = []
-    for piso_elem in raiz:
-        nombre = piso_elem.attrib['nombre']
-        r = int(piso_elem.find('R').text)
-        c = int(piso_elem.find('C').text)
-        f = int(piso_elem.find('F').text)
-        s = int(piso_elem.find('S').text)
-        
-        piso = Piso(nombre, r, c, f, s)
-        for patron_elem in piso_elem.find('patrones'):
-            codigo = patron_elem.attrib['codigo']
-            patron = patron_elem.text
-            piso.agregar_patron(codigo, patron)
-            
-        pisos.append(piso)
-        
-    # Aquí se muestra el menú de opciones para el usuario
-    
-    piso = pisos[0]
-    codigo_origen = 'cod11'
-    codigo_destino = 'cod12'
-    
-    piso.cambiar_patron(codigo_origen, codigo_destino)
-    
-if __name__ == '__main__':
-    main()

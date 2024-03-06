@@ -18,7 +18,7 @@ def generar_dot(pattern, output_dot_file):
     for i, row in enumerate(pattern):
         for j, cell in enumerate(row):
             color = '#E6E6E6' if cell == 'B' else 'black' 
-            dot.node(f'node_{i}_{j}', label=' ', style='filled', fillcolor=color, width='0.25', height='0.25')
+            dot.node(f'node_{i}_{j}', label=' ', style='filled', fillcolor=color, width='1.5', height='1.5')
             if j > 0:
                 dot.edge(f'node_{i}_{j-1}', f'node_{i}_{j}', style='invis')
             if i > 0:
@@ -71,34 +71,34 @@ def calculate_min_cost(F, S, initial_pattern, target_pattern):
                 if (pattern[i][j] != target_pattern[i][j]):
                     pattern_tmp = copy.deepcopy(pattern)
                     pattern[i][j] = target_pattern[i][j]
-                    return pattern, pattern_tmp, 'Flip'
-        return pattern, pattern, 'No se pudo completar'
+                    return pattern, pattern_tmp
+        return pattern, pattern
     
-    def makeSwap(pattern):
+    def makeSwap(pattern, e):
         for i in range(len(pattern)):
             for j in range(len(pattern[i])):
                 if (pattern[i][j] != target_pattern[i][j]):
-                    if i > 0 and pattern[i - 1][j] == target_pattern[i][j]:
+                    if e == 0 and i > 0 and pattern[i - 1][j] == target_pattern[i][j]:
                         pattern_tmp = copy.deepcopy(pattern)
                         pattern[i][j] = pattern[i - 1][j]
                         pattern[i - 1][j] = pattern_tmp[i][j]
-                        return pattern, pattern_tmp, 'Swap'
-                    if i < len(pattern) - 1 and pattern[i + 1][j] == target_pattern[i][j]:
+                        return pattern, pattern_tmp
+                    if e == 1 and i < len(pattern) - 1 and pattern[i + 1][j] == target_pattern[i][j]:
                         pattern_tmp = copy.deepcopy(pattern)
                         pattern[i][j] = pattern[i + 1][j]
                         pattern[i + 1][j] = pattern_tmp[i][j]
-                        return pattern, pattern_tmp, 'Swap'
-                    if j > 0 and pattern[i][j - 1] == target_pattern[i][j]:
+                        return pattern, pattern_tmp
+                    if e == 2 and j > 0 and pattern[i][j - 1] == target_pattern[i][j]:
                         pattern_tmp = copy.deepcopy(pattern)
                         pattern[i][j] = pattern[i][j - 1]
                         pattern[i][j - 1] = pattern_tmp[i][j]
-                        return pattern, pattern_tmp, 'Swap'
-                    if j < len(pattern[i]) - 1 and pattern[i][j + 1] == target_pattern[i][j]:
+                        return pattern, pattern_tmp
+                    if e == 3 and j < len(pattern[i]) - 1 and pattern[i][j + 1] == target_pattern[i][j]:
                         pattern_tmp = copy.deepcopy(pattern)
                         pattern[i][j] = pattern[i][j + 1]
                         pattern[i][j + 1] = pattern_tmp[i][j]
-                        return pattern, pattern_tmp, 'Swap'
-        return pattern, pattern, 'No se pudo completar'
+                        return pattern, pattern_tmp
+        return pattern, pattern
 
     def dfs(current_pattern, current_cost, path, deep):
         nonlocal min_cost, min_path, target_pattern
@@ -106,21 +106,37 @@ def calculate_min_cost(F, S, initial_pattern, target_pattern):
             if current_cost < min_cost:
                 min_cost = current_cost
                 min_path = path
-            return
-        if current_cost >= min_cost:
-            return
-        pattern_new, pattern, op = makeFlip(current_pattern)
-        if pattern_new != pattern:
-            new_cost = current_cost + F
-            path_tmp = copy.deepcopy(path)
-            path_tmp.append([pattern, op])
-            if deep < 20: dfs(pattern_new, new_cost, path_tmp, ++deep)
-        pattern_new, pattern, op = makeSwap(current_pattern)
-        if pattern_new != pattern:
-            new_cost = current_cost + S
-            path_tmp = copy.deepcopy(path)
-            path_tmp.append([pattern, op])
-            if deep < 20: dfs(pattern_new, new_cost, path_tmp, ++deep)
+        elif current_cost < min_cost:
+            pattern_new, pattern = makeFlip(copy.deepcopy(current_pattern))
+            if pattern_new != pattern:
+                new_cost = current_cost + F
+                path_tmp = copy.deepcopy(path)
+                path_tmp.append([pattern, 'Flip'])
+                if deep < 10: dfs(pattern_new, new_cost, path_tmp, deep + 1)
+            pattern_new, pattern = makeSwap(copy.deepcopy(current_pattern), 0)
+            if pattern_new != pattern:
+                new_cost = current_cost + S
+                path_tmp = copy.deepcopy(path)
+                path_tmp.append([pattern, 'Swipe'])
+                if deep < 7: dfs(pattern_new, new_cost, path_tmp, deep + 1)
+            pattern_new, pattern = makeSwap(copy.deepcopy(current_pattern), 1)
+            if pattern_new != pattern:
+                new_cost = current_cost + S
+                path_tmp = copy.deepcopy(path)
+                path_tmp.append([pattern, 'Swipe'])
+                if deep < 7: dfs(pattern_new, new_cost, path_tmp, deep + 1)
+            pattern_new, pattern = makeSwap(copy.deepcopy(current_pattern), 2)
+            if pattern_new != pattern:
+                new_cost = current_cost + S
+                path_tmp = copy.deepcopy(path)
+                path_tmp.append([pattern, 'Swipe'])
+                if deep < 7: dfs(pattern_new, new_cost, path_tmp, deep + 1)
+            pattern_new, pattern = makeSwap(copy.deepcopy(current_pattern), 3)
+            if pattern_new != pattern:
+                new_cost = current_cost + S
+                path_tmp = copy.deepcopy(path)
+                path_tmp.append([pattern, 'Swipe'])
+                if deep < 7: dfs(pattern_new, new_cost, path_tmp, deep + 1)
 
     min_cost = float('inf')
     min_path = []
